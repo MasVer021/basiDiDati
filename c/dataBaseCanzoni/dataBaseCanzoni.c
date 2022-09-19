@@ -168,7 +168,7 @@ void modifica(FILE *f,char *fileName)
 
   printf("Inserisci il nome dell'artista da modificare:");
   scanf("%s",oldAlrtist);
-  searchSong(f,oldAlrtist,&numSong);
+  free(searchSong(f,oldAlrtist,&numSong));
   if(numSong==0)
   {
     printf("Artista non trovato\n");
@@ -191,7 +191,7 @@ void cancellazione (FILE *f,char *fileName)
   int statusID,numSong;
   printf("Inserisci il nome dell'artista da cancellare:");
   scanf("%s",artistName);
-  searchSong(f,artistName,&numSong);
+  free(searchSong(f,artistName,&numSong));
   if(numSong==0)
   {
     printf("Artista non trovato\n");
