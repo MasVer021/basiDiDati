@@ -12,6 +12,7 @@ void ricerca(FILE *f);
 void modifica(FILE *f,char *fileName);
 void inserimento(FILE *f);
 void cancellazione (FILE *f,char *fileName);
+void freeDooblePointer(void **p, int num);
 
 
 
@@ -132,7 +133,7 @@ void ricerca(FILE *f)
   {
     printf("%d# %s\n",i+1,songs[i]);
   }
-  free (songs);
+  freeDooblePointer(songs,numSong);
 }
 
 void inserimento(FILE *f)
@@ -165,10 +166,12 @@ void modifica(FILE *f,char *fileName)
   char oldAlrtist[LEN];
   char newArtist[LEN];
   int statusID,numSong;
+  char ** songs;
 
   printf("Inserisci il nome dell'artista da modificare:");
   scanf("%s",oldAlrtist);
-  free(searchSong(f,oldAlrtist,&numSong));
+  songs =searchSong(f,oldAlrtist,&numSong);
+  freeDooblePointer(songs,numSong);
   if(numSong==0)
   {
     printf("Artista non trovato\n");
@@ -189,9 +192,12 @@ void cancellazione (FILE *f,char *fileName)
 {
   char artistName[LEN];
   int statusID,numSong;
+  char ** songs;
+
   printf("Inserisci il nome dell'artista da cancellare:");
   scanf("%s",artistName);
-  free(searchSong(f,artistName,&numSong));
+  songs=searchSong(f,artistName,&numSong);
+  freeDooblePointer(songs,numSong);
   if(numSong==0)
   {
     printf("Artista non trovato\n");
@@ -256,11 +262,11 @@ int addSong(FILE *f,char *artistName,char *songName)
   {
     if(strcmp(songs[i],songName)==0)
     {
-      free(songs);
+      freeDooblePointer(songs,numS);
       return 1;
     }
   }
-  free(songs);
+  freeDooblePointer(songs,numS);
   if(fprintf(f,"%s %s\n",songName,artistName)>0)
   {
     return 0;
@@ -311,8 +317,6 @@ int deleteArtist(FILE *f,char *filename,char *alrtist)
   {
     return -1;
   }
-
-  printf("%d\n",fscanf(f,"%s %s",songName,artistName));
   while(!feof(f) && fscanf(f,"%s %s",songName,artistName)==2)
   {
     if(strcmp(artistName,alrtist)!=0)
@@ -329,4 +333,13 @@ int deleteArtist(FILE *f,char *filename,char *alrtist)
   remove(filename);
   rename("temp.txt",filename);
   return 0;
+}
+
+void freeDooblePointer(void **p, int num)
+{
+  for(int i=0;i<num;i++)
+  {
+    free(p[i]);
+  }
+  free(p);
 }
