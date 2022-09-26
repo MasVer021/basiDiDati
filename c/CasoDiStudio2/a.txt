@@ -1,0 +1,3 @@
+A S 5 Rock
+C N 29 Classic
+F S 15 Folk
