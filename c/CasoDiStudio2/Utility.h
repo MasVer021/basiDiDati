@@ -16,5 +16,5 @@ void modificaArtista(char *fileName,char *fileNameMetaDati);
 int deleteArtist(char *alrtist,char *fileName,char *fileNameMetaDati);
 void eliminaArtista(char *fileName,char *fileNameMetaDati);
 void freeDooblePointer(void **p, int num);
-char **query(void);
+void query(char *fileName,char *fileNameMetaDati);
 char *toUpperString(char *S);

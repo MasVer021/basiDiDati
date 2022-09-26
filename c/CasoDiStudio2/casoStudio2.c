@@ -22,7 +22,7 @@ int main(void)
   {
     printf("1-Ricerca canzoni in base all'autore\n2-Inserici una nuova "
            "canzone\n3-Modifica nome autore\n4-Elimina artista e sue "
-           "canzoni\n5-Inserisci Artista\n6-Cambia file contenente il database\n0-Esci\n");
+           "canzoni\n5-Inserisci Artista\n6-Cambia file contenente il database\n7-Visualizza le canzoni degli artisti facenti parte di un gruppo da meno di 5 anni o con meno di 30 anni di eta\n0-Esci\n");
     scanf("%d", &menuID);
     switch (menuID)
     {
@@ -74,6 +74,9 @@ int main(void)
         scanf("%s", fileName);
         printf("File %s loaded\n", fileName);
         break;
+      case 7:
+          query(fileName,fileNameMetaDati);
+          break;
 
     }
   } while (menuID != 0);

@@ -7,7 +7,6 @@ char **search (FILE *f, char *artistNameToSearch, int *songNum)
   char songName[LEN];
   char artistName[LEN];
   int num = 0;
-
   char **songs = malloc(SN * sizeof(char *));
 
   if (!songs) // controllo allocazione
@@ -34,7 +33,6 @@ char **search (FILE *f, char *artistNameToSearch, int *songNum)
         songs = realloc(songs, (num + SN) * sizeof(char *));
       }
     }
-
     else if (strcmp(artistName, artistNameToSearch) > 0)
     {
       break;
@@ -43,6 +41,7 @@ char **search (FILE *f, char *artistNameToSearch, int *songNum)
 
   songs = realloc(songs, num * sizeof(char *));
   *songNum = num;
+
   rewind(f);
   return songs;
 }
@@ -113,7 +112,8 @@ int addArtist(char *nominativo, char gruppo, int eta, char *genere,char *fileNam
   FILE *f ,*ft;
   char nominativoFile[LEN],genereFile[LEN];
   char gruppoFile;
-  int etaFile,inserito;
+  int etaFile,pre,id;
+  int flag[4];
 
   if(!(f = fopen(fileNameMetaDati,"r")))
   {
@@ -125,22 +125,17 @@ int addArtist(char *nominativo, char gruppo, int eta, char *genere,char *fileNam
     fclose(f);
     return -2;//errore apertura file temporaneo
   }
-  inserito = 0;
-  printf("cia\n");
-  while(!feof(f) && fscanf(f, "%s %c %d %s", nominativoFile,&gruppoFile,&etaFile,genereFile)==4)
+  pre = 1;
+
+  while(!feof(f) && pre && fscanf(f, "%s %c %d %s", nominativoFile,&gruppoFile,&etaFile,genereFile)==4)
   {
-    printf("cia2\n");
+    pre =0;
+    flag[0] = strcmp(toUpperString(nominativoFile),toUpperString(nominativo))==0;
+    flag[1] = toupper(gruppoFile)==toupper(gruppo);
+    flag[2] = etaFile==eta;
+    flag[3] = strcmp(toUpperString(genereFile),toUpperString(genere))==0;
 
-    printf("%d\n",strcmp(toUpperString(nominativoFile),toUpperString(nominativo))==0 );
-    printf("%d\n",toupper(gruppoFile)==toupper(gruppo) );
-    printf("%d\n",etaFile==eta );
-    printf("%s\n",toUpperString(genereFile));
-    printf("%s\n",toUpperString(genere));
-    printf("%d\n",strcmp(toUpperString(genereFile),toUpperString(genere))==0);
-
-
-
-    if(strcmp(toUpperString(nominativoFile),toUpperString(nominativo))==0 && toupper(gruppoFile)==toupper(gruppo) && etaFile==eta && strcmp(toUpperString(genereFile),toUpperString(genere))==0)
+    if(flag[0] && flag[1] && flag[2] && flag[3] )
     {
       fclose(f);
       fclose(ft);
@@ -148,39 +143,24 @@ int addArtist(char *nominativo, char gruppo, int eta, char *genere,char *fileNam
       return -4; // artista gia presente
     }
 
-    if(strcmp(toUpperString(nominativoFile),toUpperString(nominativo))<=0)
+    if(strcmp(toUpperString(nominativoFile),toUpperString(nominativo))<0)
     {
-      if(toupper(gruppoFile)<=toupper(gruppo))
-      {
-        if(etaFile<=eta)
-        {
-          if(strcmp(toUpperString(genereFile),toUpperString(genere))<=0)
-          {
-            printf("cia3\n");
-            if(fprintf(ft, "%s %c %d %s\n",nominativoFile,gruppoFile,etaFile,genereFile)<4)
-            {
-              fclose(f);
-              fclose(ft);
-              remove(NAMEFILETEMP);
-              return -3;//errore inserimento artista
-            }
-          }
-        }
-      }
+      pre =1;
     }
-    else if(!inserito)
+    else if(flag[0] && toupper(gruppoFile)<toupper(gruppo))
     {
-        printf("cia4\n");
-      if(fprintf(ft, "%s %c %d %s\n",nominativo,gruppo,eta,genere)<4)
-      {
-        fclose(f);
-        fclose(ft);
-        remove(NAMEFILETEMP);
-        return -3;//errore inserimento artista
-      }
-      inserito =1;
+      pre = 1;
     }
-    else
+    else if (flag[0] && flag[1] && etaFile<eta )
+    {
+      pre = 1;
+    }
+    else if(flag[0] && flag[1] && flag[2] && strcmp(toUpperString(genereFile),toUpperString(genere))<0 )
+    {
+      pre =1;
+    }
+
+    if(pre)
     {
       if(fprintf(ft, "%s %c %d %s\n",nominativoFile,gruppoFile,etaFile,genereFile)<4)
       {
@@ -191,6 +171,33 @@ int addArtist(char *nominativo, char gruppo, int eta, char *genere,char *fileNam
       }
     }
   }
+
+  if(fprintf(ft, "%s %c %d %s\n",nominativo,gruppo,eta,genere)<4)
+  {
+    fclose(f);
+    fclose(ft);
+    remove(NAMEFILETEMP);
+    return -3;//errore inserimento artista
+  }
+
+  id = 4;
+
+  while(!feof(f) && id==4)
+  {
+    if(fprintf(ft, "%s %c %d %s\n",nominativoFile,gruppoFile,etaFile,genereFile)<4)
+    {
+      fclose(f);
+      fclose(ft);
+      remove(NAMEFILETEMP);
+      return -3;//errore inserimento artista
+    }
+    id = fscanf(f, "%s %c %d %s", nominativoFile,&gruppoFile,&etaFile,genereFile);
+  }
+
+
+
+
+
   fclose(f);
   fclose(ft);
   remove(fileNameMetaDati);
@@ -403,7 +410,7 @@ int deleteArtist(char *artist,char *fileName,char *fileNameMetaDati)
     return -2;//errore apertura file temporaneo
   }
 
-  while (!feof(ft) && fscanf(ft, "%s %c %d %s", artistName,&gruppoFile,&etaFile,genereFile) == 4)
+  while (!feof(f) && fscanf(f, "%s %c %d %s", artistName,&gruppoFile,&etaFile,genereFile) == 4)
   {
     if (strcmp(artistName, artist) != 0)
     {
@@ -469,22 +476,38 @@ void eliminaArtista(char *fileName,char *fileNameMetaDati)
 }
 int editArtist(char *oldAlrtist, char *newArtist,char *fileName,char *fileNameMetaDati)
 {
-  char songName[LEN];
-  char artistName[LEN];
+
   char **songs;
-  int numSong,result;
+  int numSong,result,etaFile;
+  char songName[LEN],artistName[LEN],genereFile[LEN],gruppoFile;
   FILE *f;
 
   if(!(f = fopen(fileName,"r")))
   {
     fprintf(stderr, "Errore apertura file%s\n",fileName);
-    return ; //errore apertura file fileNameMetaDati
+    return ; //errore apertura file fileName
   }
 
   songs = search(f,oldAlrtist,&numSong);
   fclose(f);
 
+  if(!(f = fopen(fileNameMetaDati,"r")))
+  {
+    fprintf(stderr, "Errore apertura file%s\n",fileName);
+    return ; //errore apertura file fileNameMetaDati
+  }
+
+  while(fscanf(f, "%s %c %d %s", artistName,&gruppoFile,&etaFile,genereFile) == 4)
+  {
+    if (strcmp(artistName, oldAlrtist) == 0)
+    {
+      break;
+    }
+  }
+  fclose(f);
+
   deleteArtist(oldAlrtist,fileName,fileNameMetaDati);
+  addArtist(newArtist,gruppoFile,etaFile,genereFile,fileNameMetaDati);
 
   result =0;
   for (int i=0;i<numSong;i++)
@@ -526,8 +549,6 @@ void modificaArtista(char *fileName,char *fileNameMetaDati)
   printf("Inserisci il Nuovo nome dell'artista:");
   scanf("%s", newArtist);
 
-   editArtist(f, fileName, oldAlrtist, newArtist);
-
   if (editArtist(oldAlrtist, newArtist,fileName,fileNameMetaDati)!=0)
   {
     printf("Errore modifica artista\n");
@@ -544,7 +565,7 @@ void freeDooblePointer(void **p, int num)
 char *toUpperString(char *S)
 {
   int lun = (strlen(S));
-  char *p = malloc((lun + 1) * sizeof(char));
+  char *p = calloc((lun + 1) , sizeof(char));
 
   if (!p)
   {
@@ -557,4 +578,55 @@ char *toUpperString(char *S)
   }
 
   return p;
+}
+
+void query(char *fileName,char *fileNameMetaDati)
+{
+  char songName[LEN],artistName[LEN],genereFile[LEN],gruppoFile;
+  int etaFile,nums;
+  char ** song;
+
+  FILE *f ,*fmd;
+  if(!(f = fopen(fileName,"r")))
+  {
+    return ; //errore apertura file
+  }
+
+  if(!(fmd = fopen(fileNameMetaDati,"r")))
+  {
+    fclose(fmd);
+    return ;//errore apertura file metadati
+  }
+
+  while (!feof(fmd) && fscanf(fmd, "%s %c %d %s", artistName,&gruppoFile,&etaFile,genereFile) == 4)
+  {
+    if (toupper(gruppoFile)=='S' && etaFile<5)
+    {
+      song = search(f,artistName,&nums);
+      if(nums>0)
+      {
+        printf("%s appartenente ad un gruppo da meno di 5 anni ed ha composto le seguenti canzoni:\n",artistName );
+        for(int i=0;i<nums;i++)
+        {
+          printf("#%d %s\n",i+1,song[i]);
+        }
+      }
+      freeDooblePointer(song, nums);
+    }
+    else if (toupper(gruppoFile)=='N' && etaFile<30)
+    {
+      song = search(f,artistName,&nums);
+
+      if(nums>0)
+      {
+        printf("%s Ha un età anagrafica minore di 30 anni ed ha composto le seguenti canzoni:\n",artistName);
+        for(int i=0;i<nums;i++)
+        {
+          printf("#%d %s\n",i+1,song[i]);
+        }
+      }
+      freeDooblePointer(song,nums);
+    }
+  }
+  return ;
 }
