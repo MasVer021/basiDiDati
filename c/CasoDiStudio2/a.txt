@@ -1,3 +1,6 @@
 A S 5 Rock
+B S 52 dsd
 C N 29 Classic
+D S 2 Classic
+E N 40 Folk
 F S 15 Folk
